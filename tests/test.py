@@ -47,18 +47,22 @@ def test_metadata():
 
 def test_response():
     model_endpoint = 'http://localhost:5000/model/predict'
-    file_path = 'samples/SAMPLE_FILE.jpg'
+    text = 'John lives in Brussels and works for the EU'
+    test_json = {
+        "text": text
+    }
+    expected_tags = ["B-PER", "O", "O", "B-GEO", "O", "O", "O", "O", "B-ORG"]
+    expected_terms = ["John", "lives", "in", "Brussels", "and", "works", "for", "the", "EU"]
 
-    with open(file_path, 'rb') as file:
-        file_form = {'image': (file_path, file, 'image/jpeg')}
-        r = requests.post(url=model_endpoint, files=file_form)
+    r = requests.post(url=model_endpoint, json=test_json)
 
     assert r.status_code == 200
     response = r.json()
-
     assert response['status'] == 'ok'
+   #assert response['prediction']['terms'] == expected_terms   UNDO
+    #assert response['prediction']['tags'] == expected_tags UNDO
 
-    # add sanity checks here
+
 
 
 if __name__ == '__main__':

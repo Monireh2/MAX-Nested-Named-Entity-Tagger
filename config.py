@@ -15,17 +15,27 @@
 #
 
 # Flask settings
-DEBUG = False
+DEBUG = True
 
 # Flask-restplus settings
 RESTPLUS_MASK_SWAGGER = False
 SWAGGER_UI_DOC_EXPANSION = 'none'
 
 # API metadata
-API_TITLE = 'MAX'
-API_DESC = 'An API for serving models'
+API_TITLE = 'MAX Nested Named Entity Tagger'
+API_DESC = 'Locate and tag nested named entities in text'
 API_VERSION = '0.1'
 
 # default model
-MODEL_NAME = ''
+MODEL_NAME = 'saved_model_nested_ner'
 DEFAULT_MODEL_PATH = 'assets/{}'.format(MODEL_NAME)
+MODEL_LICENSE = 'Mozilla Public 2.0'
+
+MODEL_META_DATA = {
+    'id': '{}'.format(API_TITLE.lower().replace(' ', '-')),
+    'name': API_TITLE,
+    'description': 'Named Entity Recognition model trained on Genia dataset',
+    'type': 'Natural Language Processing',
+    'license': MODEL_LICENSE,
+    'source': 'https://developer.ibm.com/exchanges/models/all/max-nested-named-entity-tagger/'
+}

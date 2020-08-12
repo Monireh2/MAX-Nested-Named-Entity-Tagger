@@ -17,8 +17,8 @@
 FROM codait/max-base:v1.3.2
 
 # Fill in these with a link to the bucket containing the model and the model file name
-# ARG model_bucket=
-# ARG model_file=
+ARG model_bucket=https://s3.us-east.cloud-object-storage.appdomain.cloud/nested-ner-storage
+ARG model_file=saved_model_nested_ner.tar.gz
 
 WORKDIR /workspace
 
@@ -31,6 +31,8 @@ RUN if [ "$use_pre_trained_model" = "true" ] ; then\
     fi
 
 COPY requirements.txt /workspace
+RUN apt-get update
+RUN apt-get install -y build-essential
 RUN pip install -r requirements.txt
 
 COPY . /workspace
