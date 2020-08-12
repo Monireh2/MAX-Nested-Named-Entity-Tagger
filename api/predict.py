@@ -36,26 +36,13 @@ labels_response = MAX_API.model('LabelsResponse', {
     'labels': fields.List(fields.Nested(model_label), description='Entity labels that can be predicted by the model')
 })
 
-# Reference: http://gmb.let.rug.nl/manual.php
+# Reference: https://www.researchgate.net/publication/10667350_GENIA_corpus-A_semantically_annotated_corpus_for_bio-textmining
 tag_desc = {
-    'B-PER': 'Person; entities are limited to individuals that are human or have human characteristics, such as divine entities. B- tag indicates start of a new phrase.',  # noqa
-    'I-PER': 'Person; entities are limited to individuals that are human or have human characteristics, such as divine entities.',  # noqa
-    'B-GEO': 'Location; entities are limited to geographical entities such as geographical areas and landmasses, bodies of water, and geological formations. B- tag indicates start of a new phrase.',  # noqa
-    'I-GEO': 'Location; entities are limited to geographical entities such as geographical areas and landmasses, bodies of water, and geological formations.',  # noqa
-    'B-LOC': 'Location; entities are limited to geographical entities such as geographical areas and landmasses, bodies of water, and geological formations. B- tag indicates start of a new phrase.',  # noqa
-    'I-LOC': 'Location; entities are limited to geographical entities such as geographical areas and landmasses, bodies of water, and geological formations.',  # noqa
-    'B-ORG': 'Organization; entities are limited to corporations, agencies, and other groups of people defined by an established organizational structure. B- tag indicates start of a new phrase.',  # noqa
-    'I-ORG': 'Organization; entities are limited to corporations, agencies, and other groups of people defined by an established organizational structure',  # noqa
-    'B-GPE': 'Geo-political Entity; entities are geographical regions defined by political and/or social groups. A GPE entity subsumes and does not distinguish between a city, a nation, its region, its government, or its people. B- tag indicates start of a new phrase.',  # noqa
-    'I-GPE': 'Geo-political Entity; entities are geographical regions defined by political and/or social groups. A GPE entity subsumes and does not distinguish between a city, a nation, its region, its government, or its people',  # noqa
-    'B-TIM': 'Time; limited to references to certain temporal entities that have a name, such as the days of the week and months of a year. B- tag indicates start of a new phrase.',  # noqa
-    'I-TIM': 'Time; limited to references to certain temporal entities that have a name, such as the days of the week and months of a year.',  # noqa
-    'B-EVE': 'Event; incidents and occasions that occur during a particular time. B- tag indicates start of a new phrase.',  # noqa
-    'I-EVE': 'Event; incidents and occasions that occur during a particular time.',
-    'B-ART': 'Artifact; limited to manmade objects, structures and abstract entities, including buildings, facilities, art and scientific theories. B- tag indicates start of a new phrase.',  # noqa
-    'I-ART': 'Artifact; limited to manmade objects, structures and abstract entities, including buildings, facilities, art and scientific theories.',  # noqa
-    'B-NAT': 'Natural Object; entities that occur naturally and are not manmade, such as diseases, biological entities and other living things. B- tag indicates start of a new phrase.',  # noqa
-    'I-NAT': 'Natural Object; entities that occur naturally and are not manmade, such as diseases, biological entities and other living things.',  # noqa
+    'B-*': 'Beginning of *; B- tag indicates start of a new phrase.',  # noqa
+    'I-*': 'Inside; I- tag indicates inside/middle of the phrase.',  # noqa
+    'L-*': 'Last; L- tag indicates last token of the phrase.',  # noqa
+    'U-*': 'Unit; U- tag indicates unit-length entity',  # noqa
+    '{B|I|L|U}-DNA': 'DNA',  # noqa
     'O': 'No entity type'
 }
 
@@ -75,9 +62,33 @@ class ModelLabelsAPI(MetadataAPI):
 # === Predict API
 
 
-input_example = 'John lives in Brussels and works for the EU'
-ent_example = ['I-PER', 'O', 'O', 'I-LOC', 'O', 'O', 'O', 'O', 'I-ORG']
-term_example = ['John', 'lives', 'in', 'Brussels', 'and', 'works', 'for', 'the', 'EU']
+input_example = 'The peri-kappa B site mediates human-immunodeficiency virus type 2 enhancer activation, in monocytes' \
+                ' but not in T cells.'
+ent_example = [
+            "O",
+            "B-G#DNA_domain_or_region",
+            "I-G#DNA_domain_or_region",
+            "L-G#DNA_domain_or_region",
+            "O",
+            "B-G#other_name|B-G#DNA_domain_or_region|B-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|I-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|I-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|I-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|L-G#virus",
+            "L-G#DNA_domain_or_region",
+            "U-G#other_name",
+            "O",
+            "U-G#cell_type",
+            "O",
+            "O",
+            "O",
+            "B-G#cell_type",
+            "L-G#cell_type",
+            "O"
+]
+
+term_example = ["The", "peri-kappa", "B", "site", "mediates", "human-", "immunodeficiency", "virus", "type", "2",
+                "enhancer", "activation", "in", "monocytes", "but", "not", "in", "T", "cells", "."]
 
 model_input = MAX_API.model('ModelInput', {
     'text': fields.String(required=True, description='Text for which to predict entities', example=input_example)
