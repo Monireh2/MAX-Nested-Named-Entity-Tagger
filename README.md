@@ -7,19 +7,19 @@
 This repository contains code to instantiate and deploy a nested named entity recognition model. This model annotates each word or term in a piece of text with a tag representing the entity type, taken from a list of 145  entity tags from the [GENIA Term corpus version 3.02](http://www.geniaproject.org/genia-corpus/term-corpus). These tags cover 36 types of biological named entities: persons, locations, organizations, geo-political entities, artifacts, events, natural objects, time, as well as a tag for 'no entity' (see the [GENIA corpus—a semantically annotated corpus
 for bio-textmining](https://watermark.silverchair.com/btg1023.pdf?token=AQECAHi208BE49Ooan9kkhW_Ercy7Dm3ZL_9Cf3qfKAc485ysgAAAskwggLFBgkqhkiG9w0BBwagggK2MIICsgIBADCCAqsGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMeTO4najowR6EfcbCAgEQgIICfDF-8Vz8_gtUgSpZkUVOUXmZq4CQGfaXrcMOV7nJqzlrr-DSlyG97atlvgSCSal632FRRrcmKMc9Leo9xbY1BAOClvX-tc2QuRuKCoaq6FIqTJeeHuOKdW-NtpB5RKHtdLOVp8kLgRHyPPx4BBvhSc7SdIQtZxmhWNUk2j2vK-2u0hKNBvAEv8JEqzVLWjfQztHN2oHoWP-oKWopWSWGNaVVdz3zdpX3gB4KrPC3vO-_u1uqB3S3lS33cG2AzWbqSSNSzc7qGCHJKE0JnDgFEZsR7A3XlMLRoVuv17IM16-YkhnvoiatJ902FBNYRDcljiuOVWatSQIoG4S0z4DUfMubIOfWRsR9TSIzMz1xLw4mjb-0maCXnfSgs6WAwSzqckCYEVlX751nSZKgFhHHmdox9lTcA7M1i_CZJSrgeBjITJ2UlZDaqFDxK6jBGyQSrvrBmgBjHfCrVhK0wzjDugu_VUdlOrqa6xtV19s8mGL1IhB-kAE4v4CZZBiwedjGrT3L8TuD91VsODxUxHcdpJk_tn1RfdB_5Uma-7liqE974s91whKFWVciqpYCniU57WHrdbaE7qlBRaZKum8USgoAEpabxQfLH7c2JBnFnNGk5wQGgMqLRllyZqfTXsXXUTiIIcPttwMpEl8KIW9uD1MWjqB2DDhBmeuSviHDvJVU4hqfCkINl4sMWaRdEbpEYic6W-S3r40qGTY27pFGVehKsbdVagSMA9shWlKZzSgGia3t_uv6ZBnNc_zzrdB4lqgFnRF1znFWls-VFh4TxGhH9p0pXVTMnxJgd28QRIqyTrGy3V_ObLzMkBj6Sob8WEsC4igIduJyAD9m4w) for the full entity definitions). The entity types furthermore may be tagged with either a "B-", "I-", "L-", or "U-" tag. A "U-" tag manifests  only term of a single-term entity. A "B-" tag  indicates the first term of a new multi-term entity, while subsequent middle terms in an entity will have an "I-" tag and the last term will have the "L-" tag. For example, "monocytes" would be tagged as `"U-Cell_Type"` while  "human-immunodeficiency virus type 2 " would be tagged as `["B-Virus", "I-Virus", "I-Virus", "I-Virus", "L-Virus"]`.
 
-The model consists of a seq2seq architecture with a bi-directional LSTM layer as an encoder applied to character-level embedding vectors, which are combined with pre-trained [word2vrc](http://vectors.nlpl.eu/repository/20/4.zip) and pre-trained binary [FastText](https://fasttext.cc/docs/en/crawl-vectors.html) word vector embeddings; The contextualized embeddings (BERT, ELMo, Flair) have been generated using the  [FlairNLP library]( https://github.com/flairNLP) source code.  The per-token BERT contextualized word embeddings are created as an average of all token corresponding BERT subowords. For that Flair uses the [pretrained BERT Large Uncased](https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zipFinally).
+The model consists of a seq2seq architecture with a bi-directional LSTM layer as an encoder applied to character-level embedding vectors, which are combined with pre-trained [word2vec](http://vectors.nlpl.eu/repository/20/4.zip) and pre-trained binary [FastText](https://fasttext.cc/docs/en/crawl-vectors.html) word vector embeddings; The contextualized embeddings (BERT, ELMo, Flair) have been generated using the  [FlairNLP library]( https://github.com/flairNLP) source code.  The per-token BERT contextualized word embeddings are created as an average of all token corresponding BERT subowords. For that Flair uses the [pretrained BERT Large Uncased](https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zipFinally).
 Finally an LSTM decoder layer is applied to this combined vector representation for generating the named entity tags. The input to the model is a string and the output is a list of terms in the input text (after applying simple tokenization), together with a list of predicted entity tags for each term.
 [ADD A DESCRIPTION OF THE MODEL HERE - see other MAX models for examples]
 
-The model is based on the Jana Strakova's [Neural Architectures for Nested NER through Linearization]([https://github.com/ufal/acl2019_nested_ner]). The model files are hosted on
-[IBM Cloud Object Storage]([https://s3.us-east.cloud-object-storage.appdomain.cloud/nested-ner-storage/saved_model_nested_ner.tar.gz]).
+The model is based on the Jana Strakova's [Neural Architectures for Nested NER through Linearization](https://github.com/ufal/acl2019_nested_ner). The model files are hosted on
+[IBM Cloud Object Storage](https://s3.us-east.cloud-object-storage.appdomain.cloud/nested-ner-storage/saved_model_nested_ner.tar.gz).
 The code in this repository deploys the model as a web service in a Docker container. This repository was developed
 as part of the [IBM Developer Model Asset Exchange](https://developer.ibm.com/exchanges/models/) and the public API is powered by [IBM Cloud](https://ibm.biz/Bdz2XM).
 
 ## Model Metadata
 | Domain | Application | Industry  | Framework | Training Data | Input Data Format |
 | ------------- | --------  | -------- | --------- | --------- | -------------- | 
-| [Natural Language Processing] | [Nested Named Entity Recognition] | [General] | [Tensorflow] | [Genia Corpus](http://www.geniaproject.org/genia-corpus/term-corpus) | [Text] |
+| Natural Language Processing | Nested Named Entity Recognition | General | Tensorflow | [Genia Corpus](http://www.geniaproject.org/genia-corpus/term-corpus) | Text |
 
 <!---
 ## Benchmark
@@ -37,8 +37,11 @@ _Note: The performance of a model is not the only significant metric. The level 
 --->
 ## References
 
-* _[Jana Strakova´, Milan Straka, Jan Hajic]_, ["Neural Architectures for Nested NER through Linearization"]([https://www.aclweb.org/anthology/P19-1527.pdf]), ACL, 2019.
-* [GITHUB REPO]([LINK TO REPO])
+* _Jana Strakova´, Milan Straka, Jan Hajic_, ["Neural Architectures for Nested NER through Linearization"](https://www.aclweb.org/anthology/P19-1527.pdf), ACL, 2019.
+* [GitHub repository for Neural Architectures for Nested NER through Linearization](https://github.com/ufal/acl2019_nested_ner)
+* [GitHub repository for XML to Conll](https://github.com/bryanoliveira/xml2conll)
+* [GitHub repository for XML to Nested Conll](https://github.ibm.com/Monireh-Ebrahimi/xml2nestedconll)
+
 
 ## Licenses
 
