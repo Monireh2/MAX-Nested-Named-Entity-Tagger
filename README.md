@@ -1,170 +1,228 @@
-[![Build Status](https://travis-ci.com/IBM/MAX-Skeleton.svg?branch=master)](https://travis-ci.com/IBM/MAX-Skeleton)
+[![Build Status](https://travis-ci.com/IBM/MAX-Nested-Named-Entity-Tagger.svg?branch=master)](https://travis-ci.com/IBM/MAX-Nested-Named-Entity-Tagger) [![Website Status](https://img.shields.io/website/http/[MODEL DOCKER TAG].max.us-south.containers.appdomain.cloud/swagger.json.svg?label=api+demo)](http://[MODEL DOCKER TAG].max.us-south.containers.appdomain.cloud/)
 
-# Model Asset Exchange Scaffolding
+[<img src="docs/deploy-max-to-ibm-cloud-with-kubernetes-button.png" width="400px">](http://ibm.biz/max-to-ibm-cloud-tutorial)
 
-Docker based deployment skeleton for deep learning models on the Model Asset Exchange.
+# IBM Developer Model Asset Exchange: Nested Named Entity Tagger
 
-## Prerequisites:
+This repository contains code to instantiate and deploy a nested named entity recognition model. This model annotates each word or term in a piece of text with a tag representing the entity type, taken from a list of 145  entity tags from the [GENIA Term corpus version 3.02](http://www.geniaproject.org/genia-corpus/term-corpus). These tags cover 36 types of biological named entities: persons, locations, organizations, geo-political entities, artifacts, events, natural objects, time, as well as a tag for 'no entity' (see the [GENIA corpus—a semantically annotated corpus
+for bio-textmining](https://watermark.silverchair.com/btg1023.pdf?token=AQECAHi208BE49Ooan9kkhW_Ercy7Dm3ZL_9Cf3qfKAc485ysgAAAskwggLFBgkqhkiG9w0BBwagggK2MIICsgIBADCCAqsGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMeTO4najowR6EfcbCAgEQgIICfDF-8Vz8_gtUgSpZkUVOUXmZq4CQGfaXrcMOV7nJqzlrr-DSlyG97atlvgSCSal632FRRrcmKMc9Leo9xbY1BAOClvX-tc2QuRuKCoaq6FIqTJeeHuOKdW-NtpB5RKHtdLOVp8kLgRHyPPx4BBvhSc7SdIQtZxmhWNUk2j2vK-2u0hKNBvAEv8JEqzVLWjfQztHN2oHoWP-oKWopWSWGNaVVdz3zdpX3gB4KrPC3vO-_u1uqB3S3lS33cG2AzWbqSSNSzc7qGCHJKE0JnDgFEZsR7A3XlMLRoVuv17IM16-YkhnvoiatJ902FBNYRDcljiuOVWatSQIoG4S0z4DUfMubIOfWRsR9TSIzMz1xLw4mjb-0maCXnfSgs6WAwSzqckCYEVlX751nSZKgFhHHmdox9lTcA7M1i_CZJSrgeBjITJ2UlZDaqFDxK6jBGyQSrvrBmgBjHfCrVhK0wzjDugu_VUdlOrqa6xtV19s8mGL1IhB-kAE4v4CZZBiwedjGrT3L8TuD91VsODxUxHcdpJk_tn1RfdB_5Uma-7liqE974s91whKFWVciqpYCniU57WHrdbaE7qlBRaZKum8USgoAEpabxQfLH7c2JBnFnNGk5wQGgMqLRllyZqfTXsXXUTiIIcPttwMpEl8KIW9uD1MWjqB2DDhBmeuSviHDvJVU4hqfCkINl4sMWaRdEbpEYic6W-S3r40qGTY27pFGVehKsbdVagSMA9shWlKZzSgGia3t_uv6ZBnNc_zzrdB4lqgFnRF1znFWls-VFh4TxGhH9p0pXVTMnxJgd28QRIqyTrGy3V_ObLzMkBj6Sob8WEsC4igIduJyAD9m4w) for the full entity definitions). The entity types furthermore may be tagged with either a "B-", "I-", "L-", or "U-" tag. A "U-" tag manifests  only term of a single-term entity. A "B-" tag  indicates the first term of a new multi-term entity, while subsequent middle terms in an entity will have an "I-" tag and the last term will have the "L-" tag. For example, "monocytes" would be tagged as `"U-Cell_Type"` while  "human-immunodeficiency virus type 2 " would be tagged as `["B-Virus", "I-Virus", "I-Virus", "I-Virus", "L-Virus"]`.
 
-* You will need Docker installed. Follow the [installation instructions](https://docs.docker.com/install/) for your
-system.
-* Have the model saved in SavedModel format and uploaded to a public [Cloud Object Storage](https://console.bluemix.net/catalog/services/cloud-object-storage) bucket.
+The model consists of a seq2seq architecture with a bi-directional LSTM layer as an encoder applied to character-level embedding vectors, which are combined with pre-trained [word2vrc](http://vectors.nlpl.eu/repository/20/4.zip) and pre-trained binary [FastText](https://fasttext.cc/docs/en/crawl-vectors.html) word vector embeddings; The contextualized embeddings (BERT, ELMo, Flair) have been generated using the  [FlairNLP library]( https://github.com/flairNLP) source code.  The per-token BERT contextualized word embeddings are created as an average of all token corresponding BERT subowords. For that Flair uses the [pretrained BERT Large Uncased](https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zipFinally).
+Finally an LSTM decoder layer is applied to this combined vector representation for generating the named entity tags. The input to the model is a string and the output is a list of terms in the input text (after applying simple tokenization), together with a list of predicted entity tags for each term.
+[ADD A DESCRIPTION OF THE MODEL HERE - see other MAX models for examples]
 
-## Step-by-step Guide to Wrapping a Model
+The model is based on the Jana Strakova's [Neural Architectures for Nested NER through Linearization]([https://github.com/ufal/acl2019_nested_ner]). The model files are hosted on
+[IBM Cloud Object Storage]([https://s3.us-east.cloud-object-storage.appdomain.cloud/nested-ner-storage/saved_model_nested_ner.tar.gz]).
+The code in this repository deploys the model as a web service in a Docker container. This repository was developed
+as part of the [IBM Developer Model Asset Exchange](https://developer.ibm.com/exchanges/models/) and the public API is powered by [IBM Cloud](https://ibm.biz/Bdz2XM).
 
-### 1. Clone the skeleton
-Clone the `MAX-skeleton` repository locally. In a terminal run the following command:
-```bash
-$ git clone https://github.com/IBM/MAX-Skeleton
-```
-The project files are structured into three main parts: model, api, and samples. The `model` directory will contain code used for loading the model and running the predictions. The `api` directory contains code to handle the inputs and outputs of the MAX microservice. The `samples` directory will contain sample data and notebooks for the user to try the service.
+## Model Metadata
+| Domain | Application | Industry  | Framework | Training Data | Input Data Format |
+| ------------- | --------  | -------- | --------- | --------- | -------------- | 
+| [Natural Language Processing] | [Nested Named Entity Recognition] | [General] | [Tensorflow] | [Genia Corpus](http://www.geniaproject.org/genia-corpus/term-corpus) | [Text] |
 
-Example:
-```
-./
-  app.py
-  model/
-    model.py
-  api/
-    metadata.py
-    predict.py
-```
+<!---
+## Benchmark
 
-### 2. Modify the Dockerfile
-In the [`Dockerfile`](Dockerfile) we need to modify the following `ARG` instructions with a link to the
-public object storage bucket and the name of the file containing the serialized model.
+The predictive performance of the model can be characterized by the benchmark table below.
 
-    ARG model_bucket=
-    ARG model_file=
+_Note: The performance of a model is not the only significant metric. The level of bias and fairness incorporated in the model are also of high importance. Learn more by reading up on the [AI Fairness 360 open source toolkit](http://ibm.biz/AI_Fairness_360)._
 
-Then, calculate and add the SHA512 hashes of the files that will be downloaded to `sha512sums.txt`. Note: the hashes should be
-of the files after any extraction (eg after un-taring or un-ziping).
 
-To calculate the SHA512 sum of a file run:
-```bash
-$ sha512sum <FILE NAME>
-```
 
-### 3. Import the model in `core/model.py`
+|  | [DATASET 1] | [DATASET 2]   | [DATASET 3]  |
+| -------- | --------  | -------- | --------- |
+| [METRIC 1] | [VALUE] | [VALUE] | [VALUE] |
+| [METRIC 2] | [VALUE] | [VALUE] | [VALUE] |
+--->
+## References
 
-This is where we handle the framework specific code for running predictions. The model is
-loaded in the `ModelWrapper.__init__()` method. Any code that needs to run when
-the model is loaded is also placed here.
+* _[Jana Strakova´, Milan Straka, Jan Hajic]_, ["Neural Architectures for Nested NER through Linearization"]([https://www.aclweb.org/anthology/P19-1527.pdf]), ACL, 2019.
+* [GITHUB REPO]([LINK TO REPO])
 
-There are also separate functions for pre-processing, predictions, and post-processing that need to be implemented. The  `MAXModelWrapper` base class has a default `predict` method that internally calls these pre-processing, prediction, and post-processing functions.
-The model metadata should also be defined here.
+## Licenses
 
-```python
-class ModelWrapper(MAXModelWrapper):
+| Component | License | Link  |
+| ------------- | --------  | -------- |
+| This repository | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) | [LICENSE](LICENSE) |
+| Model Weights | [LINK TO LICENSE] | [LINK TO LICENSE IN SOURCE] |
+| Model Code (3rd party) | [Mozilla Public 2.0](https://www.mozilla.org/en-US/MPL/2.0/) | [LICENSE](LICENSE) |
+| Test samples | [LINK TO LICENSE] | [samples README](samples/README.md) |
 
-    MODEL_META_DATA = {
-        'id': 'ID',
-        'name': 'MODEL NAME',
-        'description': 'DESCRIPTION',
-        'type': 'MODEL TYPE',
-        'source': 'MODEL SOURCE'
-        'license': 'LICENSE'
-    }
+## Pre-requisites:
 
-    def __init__(self, path=DEFAULT_MODEL_PATH):
-        pass
+* `docker`: The [Docker](https://www.docker.com/) command-line interface. Follow the [installation instructions](https://docs.docker.com/install/) for your system.
+* The minimum recommended resources for this model is [SET NECESSARY GB] Memory and [SET NECESSARY CPUs] CPUs.
 
-    def _pre_process(self, inp):
-        return inp
+# Deployment options
 
-    def _post_process(self, result):
-        return result
+* [Deploy from Docker Hub](#deploy-from-docker-hub)
+* [Deploy on Red Hat OpenShift](#deploy-on-red-hat-openshift)
+* [Deploy on Kubernetes](#deploy-on-kubernetes)
+* [Run Locally](#run-locally)
 
-    def _predict(self, x):
-        return x
-```
-
-### 4. Add input/output parsing code in `api/predict.py`
-
-The input and outputs requests are sent as JSON strings. We define the format of these requests using the `flask_restplus` package. In the skeleton we have the output response configured with the following schema:
-
-```json
-{
-    "predictions": [
-        {
-            "probability": "float",
-            "label": "string",
-            "label_id": "string"
-        },
-    ],
-    "status": "string"
-}
-```
-The `predict_response` and `label_prediction` variables can be modified to amend the schema for each model's specific response format.
-
-To define the input format for a prediction we use Flask-RESTPlus's request parsing interface. The default input takes in a file.
-
-### 5. Create MAXApp instance in `app.py`
-
-The following code is already in the skeleton, but you may need to manually add extra APIs if needed.
-```python
-from maxfw.core import MAXApp
-from api import ModelMetadataAPI, ModelPredictAPI
-from config import API_TITLE, API_DESC, API_VERSION
-
-max = MAXApp(API_TITLE, API_DESC, API_VERSION)
-max.add_api(ModelMetadataAPI, '/metadata')
-max.add_api(ModelPredictAPI, '/predict')
-max.run()
-```
-
-### 6. Add integration tests
-
-Add a few integration tests using `pytest` in `tests/test.py` to check that your model works. To enable Travis CI
-testing uncomment the `docker` commands and `pytest` command in `.travis.yml`.
-
-### 7. Add requirements
-
-Add required python packages to `requirements.txt`
-
-## Testing Out the Model with Docker
-
-### 1. Build the model Docker image
-
-To build the docker image locally, run:
-
-```bash
-$ docker build -t max-model .
-```
-
-If you want to print debugging messages make sure to set `DEBUG=True` in `config.py`.
-
-### 2. Run the model server
+## Deploy from Docker Hub
 
 To run the docker image, which automatically starts the model serving API, run:
 
-```bash
-$ docker run -it -p 5000:5000 max-model
+```
+$ docker run -it -p 5000:5000 codait/max-nested-named-entity-tagger
 ```
 
-### 3. Test the API
+This will pull a pre-built image from Docker Hub (or use an existing image if already cached locally) and run it.
+If you'd rather checkout and build the model locally you can follow the [run locally](#run-locally) steps below.
+
+## Deploy on Red Hat OpenShift
+
+You can deploy the model-serving microservice on Red Hat OpenShift by following the instructions for the OpenShift web console or the OpenShift Container Platform CLI [in this tutorial](https://developer.ibm.com/tutorials/deploy-a-model-asset-exchange-microservice-on-red-hat-openshift/), specifying `codait/[MODEL DOCKER TAG]` as the image name.
+
+## Deploy on Kubernetes
+
+You can also deploy the model on Kubernetes using the latest docker image on Docker Hub.
+
+On your Kubernetes cluster, run the following commands:
+
+```
+$ kubectl apply -f https://github.ibm.com/CODAIT/MAX-Nested-Named-Entity-Tagger/raw/master/[MODEL DOCKER TAG].yaml
+```
+
+The model will be available internally at port `5000`, but can also be accessed externally through the `NodePort`.
+
+A more elaborate tutorial on how to deploy this MAX model to production on [IBM Cloud](https://ibm.biz/Bdz2XM) can be found [here](http://ibm.biz/max-to-ibm-cloud-tutorial).
+
+## Run Locally
+
+1. [Build the Model](#1-build-the-model)
+2. [Deploy the Model](#2-deploy-the-model)
+3. [Use the Model](#3-use-the-model)
+4. [Development](#4-development)
+5. [Cleanup](#5-cleanup)
+
+
+### 1. Build the Model
+
+Clone this repository locally. In a terminal, run the following command:
+
+```
+$ git clone https://github.ibm.com/CODAIT/MAX-Nested-Named-Entity-Tagger.git
+```
+
+Change directory into the repository base folder:
+
+```
+$ cd MAX-Nested-Named-Entity-Tagger
+```
+
+To build the docker image locally, run: 
+
+```
+$ docker build -t max-nested-named-entity-tagger .
+```
+
+All required model assets will be downloaded during the build process. _Note_ that currently this docker image is CPU only (we will add support for GPU images later).
+
+
+### 2. Deploy the Model
+
+To run the docker image, which automatically starts the model serving API, run:
+
+```
+$ docker run -it -p 5000:5000 codait/max-nested-named-entity-tagger
+```
+
+### 3. Use the Model
 
 The API server automatically generates an interactive Swagger documentation page. Go to `http://localhost:5000` to load it. From there you can explore the API and also create test requests.
 
-Use the `model/predict` endpoint to load a test file and get a response from the API.
+[Use the `model/predict` endpoint to post text and get predicted tags from the API. Below are a few example sentences you can use:]
 
-```bash
-$ curl -F "file=@<INPUT_FILE_PATH>" -XPOST http://localhost:5000/model/predict
+```
+The peri-kappa B site mediates human-immunodeficiency virus type 2 enhancer activation, in monocytes but not in T cells.
+
+Peroxisome proliferator-activated receptor activators human endothelial cells to inhibit leukocyte-endothelial cell interaction.
+
+In conclusion, these data show that IL-10 induces c-fos  expression in human by activation of tyrosine   and serine/threonine kinases.
 ```
 
-### 4. Run the Test Cases
 
-Install test required packages and run tests using `pytest`:
 
-```bash
-$ pip install -r requirements-test.txt
-$ pytest tests/test.py
+![INSERT SWAGGER UI SCREENSHOT HERE](docs/swagger-screenshot.png)
+
+You can also test it on the command line, for example:
+
+```
+$ curl -X POST -H 'Content-Type: application/json' -d '{"text":"The peri-kappa B site mediates human-immunodeficiency virus type 2 enhancer activation, in monocytes but not in T cells."}' 'http://localhost:5000/model/predict'
 ```
 
-## Provide documentation
+You should see a JSON response like that below:
 
-Copy the README files and add the relevant details for the specific model and use case, following the MAX standard. See other MAX models (e.g. [Object Detector](https://github.com/IBM/MAX-Object-Detector)) for examples. 
+```json
+{
+  "status": "ok",
+  "predictions": {
+      "entities": [
+            "O",
+            "B-G#DNA_domain_or_region",
+            "I-G#DNA_domain_or_region",
+            "L-G#DNA_domain_or_region",
+            "O",
+            "B-G#other_name|B-G#DNA_domain_or_region|B-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|I-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|I-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|I-G#virus",
+            "I-G#other_name|I-G#DNA_domain_or_region|L-G#virus",
+            "L-G#DNA_domain_or_region",
+            "U-G#other_name",
+            "O",
+            "U-G#cell_type",
+            "O",
+            "O",
+            "O",
+            "B-G#cell_type",
+            "L-G#cell_type",
+            "O"
+        ],
+        "input_terms": [
+            "The",
+            "peri-kappa",
+            "B",
+            "site",
+            "mediates",
+            "human-",
+            "immunodeficiency",
+            "virus",
+            "type",
+            "2",
+            "enhancer",
+            "activation",
+            "in",
+            "monocytes",
+            "but",
+            "not",
+            "in",
+            "T",
+            "cells",
+            "."
+            	
+        ]
 
-More specifically, update the following README files:
-- Replace this `README.md` file with the completed `README-template.md` file
-- Complete the `samples/README.md` file with information about the data samples and the demo notebook, if any
+  }
+}
+```
+
+### 4. Development
+
+> Please remember to set `DEBUG = False` when publishing the model. 
+
+To run the Flask API app in debug mode, edit `config.py` to set `DEBUG = True` under the application settings. You will then need to rebuild the docker image (see [step 1](#1-build-the-model)).
+
+### 5. Cleanup
+
+To stop the Docker container, type `CTRL` + `C` in your terminal.
+<!---
+## Train this Model on Watson Machine Learning
+
+> Remove this section if this model cannot be trained using custom data. Refer to https://github.ibm.com/CODAIT/max-model-training for details on how to enable a model for custom training.
+
+This model supports both fine-tuning with transfer learning and training from scratch on a custom dataset. Please follow the steps listed under the [training readme](training/README.md) to retrain the model on [Watson Machine Learning](https://www.ibm.com/cloud/machine-learning), a deep learning as a service offering of [IBM Cloud](https://ibm.biz/Bdz2XM).)
+-->
